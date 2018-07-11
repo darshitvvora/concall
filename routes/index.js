@@ -62,9 +62,9 @@ router.post('/', async function(req, res) {
     await page.waitForNavigation({waitUntil: 'networkidle2'});
 
     await page.waitFor(12000);
-    const textDialInNo = await page.evaluate(() => document.querySelector(config.DAIL_NO_SELECTOR).textContent);
-    const textAccessCode = await page.evaluate(() => document.querySelector(config.ACCESS_CODE_SELECTOR).textContent);
-    const textHostPin = await page.evaluate(() => document.querySelector(config.HOST_PIN_SELECTOR).textContent);
+    const textDialInNo = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(1) > div.col-xs-6.align-right.text-nowrap > span.credentials-value').textContent);
+    const textAccessCode = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(5) > div.col-xs-7.align-right > span').textContent);
+    const textHostPin = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(7) > div.col-xs-8.align-right > span').textContent);
 
     console.log(textDialInNo);
     console.log(textAccessCode);
