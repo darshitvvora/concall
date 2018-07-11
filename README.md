@@ -1,7 +1,8 @@
 # Self Service Conference Call API (Replace Skype for Business and integrate conference calls easily in your application)
 
 ## What is concall API?
-Standalone API for generating PIN access-code and dial in number for conference calls similar to Skype for Business
+Standalone API for generating PIN access-code and dial in number for conference calls similar to Skype for Business.
+Enables you to host and enables participants to join conference calls using phone or VoIP.
 
 ### Local Installation and usage
 - Clone the repository
