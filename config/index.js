@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-const root = path.normalize(`${__dirname}/../../..`);
+const root = path.normalize(`${__dirname}/../..`);
 
 const env = dotenv.config({ path: path.join(root, '.env') });
 

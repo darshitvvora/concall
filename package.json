@@ -8,21 +8,22 @@
     "build": "rimraf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./.babelrc,./package.json,./npm-debug.log --copy-files",
     "start": "npm run build && node ./dist/bin/www"
   },
-  "author": "",
+  "author": "Darshit Vora <darshitvvora@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "^2.259.1",
-    "bluebird": "^3.5.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
-    "dotenv": "^6.0.0",
+    "dotenv": "^2.0.0",
     "express": "~4.16.0",
+    "he": "^1.1.1",
     "http-errors": "~1.6.2",
     "morgan": "~1.9.0",
     "node-sass-middleware": "0.11.0",
+    "nodemailer": "^4.6.7",
     "pug": "2.0.0-beta11",
-    "puppeteer": "^1.5.0"
+    "puppeteer": "^1.5.0",
+    "request-promise": "^4.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

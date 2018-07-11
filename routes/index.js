@@ -1,28 +1,49 @@
-const express = require('express');
-const router = express.Router();
-const salt = 'q8YVxW6NOz';
+import  express from 'express';
+import he from 'he';
 import puppeteer from 'puppeteer';
-import ses from '../conn/ses'
+import rp from 'request-promise';
+import email from '../components/email';
+import config from '../config';
+
+const router = express.Router();
+const salt = config.SALT;
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+router.get('/', function(req, res) {
+  res.render('index', { title: 'Welcome to concall api v0.0.1' });
 });
 
 
-router.post('/', async function(req, res, next) {
+router.post('/', async function(req, res) {
+    console.log(req.body.salt);
     if(req.body.salt !== salt) return res.status(400)
         .json({ error: 'Invalid Credentials', error_description: 'Pass correct creds in request' });
 
     const randomPassword =  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const randomEmail = `${randomPassword}@20minutemail.it`
+    const randomDomain =    Math.random().toString(36).substring(2, 7);
+    const randomEmail = `${randomPassword}@${randomDomain}.com`
 
-    const browser = await puppeteer.launch({headless: false});
+    const proxy = await rp({
+        method: 'GET',
+        uri: config.PROXY_URI,
+        json: true,
+        headers: { 'User-Agent': 'Request-Promise' },
+    });
+
+    console.log(proxy.ip, proxy.port);
+
+    const browser = await puppeteer.launch({
+        headless:false,
+        timeout:0,
+        args: [
+            `--proxy-server=${proxy.ip}:${proxy.port}`, // Or whatever the address is
+        ]
+    });
     const page = await browser.newPage();
     await page.setViewport({ width: 1366, height: 768});
 
     await page.goto('https://www.freeconferencecall.com/global/in', {waitUntil: 'networkidle2'});
-
+    await page.waitFor(4000);
 
     console.log(page.url());
 
@@ -50,36 +71,36 @@ router.post('/', async function(req, res, next) {
     console.log(textHostPin);
 
     await page.click('#extended-new-account-modal > div > div > div.modal-header > button > span:nth-child(1)');
-    await page.waitFor(4000);
+    await page.waitFor(1000);
 
     await page.click('#logout-desktop');
     await browser.close();
 
-    ses.sendTemplatedEmail({
-        Source: `"QuezX.com" <${config.SMTP_USER}>`,
-        Destination: {
-            ToAddresses: ['darshit@quetzal.in'],
-        },
-        Template: 'h-cvshare-magiclinkexpired',
-        TemplateData: JSON.stringify({
-            jdOwnerName: name || '',
-            candidateName: applicant.name,
-            requestEmailId: cvShare.follower_email_id,
-            role: job.role,
-            location: job.job_location,
-            link: `${config.PREFIX}hire.${config.DOMAIN}/applicants/${applicantId}`,
-        }),
-    }, (err, content) => {
-        if (err) {
-            console.log('err', err);
-            return err;
-        }
-        return console.log('send', content);
-    });
 
-    return res.status(200)
-        .json({ msg: 'Success', msg_description: 'Email sent successfully' });
 
+    const htmlBody = req.body.mailOptions.html
+        .replace('{{dialInNo}}', textDialInNo)
+        .replace('{{accessCode}}', textAccessCode)
+        .replace('{{hostPin}}', textHostPin);
+
+
+    const stripedHtml = htmlBody.replace(/<[^>]+>/g, '');
+    const textBody = he.decode(stripedHtml);
+
+
+
+     const mailOptions = {
+         from: req.body.mailOptions.from, // sender address
+         to: req.body.mailOptions.to, // list of receivers
+         subject: req.body.mailOptions.subject, // Subject line
+         text: textBody, // plain text body
+         html: htmlBody // html body
+     };
+
+
+     return email.send(mailOptions)
+         .then(info => res.status(201).json(info))
+         .catch(err => res.status(500).json(err));
 });
 
 
