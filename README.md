@@ -102,26 +102,4 @@ request(options, function (error, response, body) {
   console.log(body);
 });
 
- ```
-
- ## Contribute
-Contributing is simple as cloning, making changes and submitting a pull request.
-If you would like to contribute, here are a few starters:
-- Bug Hunts
-- More sorts of examples
-- Additional features/ More integrations (This api has the minimum amount, but I don't mind having more data accessible to users)
-
-
-## Legal
-This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by aby organisation or any of its affiliates or subsidiaries. This is an independent and unofficial software. Use at your own risk.
-
-## Contributors
-
-Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
-
+ 
