@@ -11,6 +11,9 @@ Enables you to host and enables participants to join conference calls using phon
 - npm start
 
 ### Integration with API
+We advise you to call API using a queue. You can use KUE(https://automattic.github.io/kue/). This will help you to recall incase of failure.
+callbackUrl is hit once we generate details and it is then sent in body of callback URL
+
 ### Usage HTTP:
 POST  HTTP/1.1
 Host: localhost:3636
@@ -25,7 +28,10 @@ Payload:
 		"to":"todemo@gmail.com",
 		"subject":"Your Conference Call Details",
 		"html":"<div>Hello,<br>Details for your conference call is as below:<br></div><div><table style='font-family:arial, sans-serif;border-collapse:collapse;width:100%;' > <tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Date Time</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >14 July, 2017, 2:30 PM</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Dail In Number</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{dialInNo}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Access Code</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{accessCode}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >HOST PIN</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{hostPin}}</td></tr></table></div><br>Happy Calling!"
-	}
+	},
+		"dateTime":"Monday July 27, 2018",
+    	"callbackUrl":"http://api.test/concall"
+
 }
 ```
 
@@ -45,7 +51,7 @@ curl_setopt_array($curl, array(
   CURLOPT_TIMEOUT => 30,
   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   CURLOPT_CUSTOMREQUEST => "POST",
-  CURLOPT_POSTFIELDS => "{\n\t\"salt\": \"q8YVxW6NOz\",\n\t\"mailOptions\":{\n\t\t\"from\":\"darshitvvora@gmail.com\",\n\t\t\"to\":\"demo@gmail.com\",\n\t\t\"subject\":\"Your Conference Call Details\",\n\t\t\"html\":\"<div>Hello,<br>Details for your conference call is as below:<br></div><div><table style='font-family:arial, sans-serif;border-collapse:collapse;width:100%;' > <tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Date Time</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >14 July, 2017, 2:30 PM</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Dail In Number</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{dialInNo}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Access Code</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{accessCode}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >HOST PIN</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{hostPin}}</td></tr></table></div><br>Happy Calling!\"\n\t}\n}",
+  CURLOPT_POSTFIELDS => "{\n\t\"salt\": \"q8YVxW6NOz\",\n\t\"mailOptions\":{\n\t\t\"from\":\"darshitvvora@gmail.com\",\n\t\t\"to\":\"demo@gmail.com\",\n\t\t\"subject\":\"Your Conference Call Details\",\n\t\t\"html\":\"<div>Hello,<br>Details for your conference call is as below:<br></div><div><table style='font-family:arial, sans-serif;border-collapse:collapse;width:100%;' > <tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Date Time</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >14 July, 2017, 2:30 PM</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Dail In Number</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{dialInNo}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >Access Code</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{accessCode}}</td></tr><tr> <th style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >HOST PIN</th> <td style='border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;' >{{hostPin}}</td></tr></table></div><br>Happy Calling!\"\n\t}\n},"dateTime":"Monday July 27, 2018", "callbackUrl":"http://api.test/concall"",
   CURLOPT_HTTPHEADER => array(
     "cache-control: no-cache",
     "content-type: application/json",
@@ -84,7 +90,10 @@ var options = { method: 'POST',
       { from: 'darshitvvora@gmail.com',
         to: 'demo@gmail.com',
         subject: 'Your Conference Call Details',
-        html: '<div>Hello,<br>Details for your conference call is as below:<br></div><div><table style=\'font-family:arial, sans-serif;border-collapse:collapse;width:100%;\' > <tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Date Time</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >14 July, 2017, 2:30 PM</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Dail In Number</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{dialInNo}}</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Access Code</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{accessCode}}</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >HOST PIN</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{hostPin}}</td></tr></table></div><br>Happy Calling!' } },
+        html: '<div>Hello,<br>Details for your conference call is as below:<br></div><div><table style=\'font-family:arial, sans-serif;border-collapse:collapse;width:100%;\' > <tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Date Time</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >14 July, 2017, 2:30 PM</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Dail In Number</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{dialInNo}}</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >Access Code</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{accessCode}}</td></tr><tr> <th style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >HOST PIN</th> <td style=\'border-width:1px;border-style:solid;border-color:#dddddd;text-align:left;padding-top:8px;padding-bottom:8px;padding-right:8px;padding-left:8px;\' >{{hostPin}}</td></tr></table></div><br>Happy Calling!' }
+        ,	"dateTime":"Monday July 27, 2018",
+         	"callbackUrl":"http://api.test/concall"
+        },
   json: true };
 
 request(options, function (error, response, body) {
@@ -94,7 +103,7 @@ request(options, function (error, response, body) {
 });
 
  ```
- 
+
  ## Contribute
 Contributing is simple as cloning, making changes and submitting a pull request.
 If you would like to contribute, here are a few starters:
