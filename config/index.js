@@ -1,9 +1,7 @@
+const dotenv = require('dotenv');
+const path = require('path');
 
-import dotenv from 'dotenv';
-import path from 'path';
-
-const root = path.normalize(`${__dirname}/../..`);
-
+const root = path.normalize(`${__dirname}/..`);
 const env = dotenv.config({ path: path.join(root, '.env') });
 
 // All configurations will extend these options
@@ -19,12 +17,8 @@ const all = {
 
   // Server IP
   ip: process.env.IP || '0.0.0.0',
-
-
 };
 
 // Export the config object based on the NODE_ENV
 // ==============================================
-module.exports = Object.assign(
-  all,
-  env);
+module.exports = Object.assign(all, env);

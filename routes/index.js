@@ -28,143 +28,155 @@ request(options, function (error, response, body) {
 *
  */
 
-import  express from 'express';
-import he from 'he';
-import puppeteer from 'puppeteer';
-import rp from 'request-promise';
-import email from '../components/email';
-import config from '../config';
+const express = require('express');
+const he = require('he');
+const puppeteer = require('puppeteer');
+const rp = require('request-promise');
+
+const { transport } = require('../components/email');
+const config = require('../config');
 
 const router = express.Router();
 const salt = config.SALT;
+
+async function conCallComplete(url, data) {
+    return await rp({
+        method: 'POST',
+        uri: url,
+        body: { ...data },
+        json: true,
+        headers: { 'User-Agent': 'Request-Promise' },
+    });
+}
 
 /* GET home page. */
 router.get('/', function(req, res) {
   res.render('index', { title: 'Welcome to concall api v0.0.1' });
 });
 
-
 router.post('/', async function(req, res) {
-    console.log(req.body.salt);
-    if(req.body.salt !== salt) return res.status(400)
-        .json({ error: 'Invalid Credentials', error_description: 'Pass correct creds in request' });
+    try {
+        if(req.body.salt !== salt) return res.status(400)
+            .json({ error: 'Invalid Credentials', error_description: 'Pass correct creds in request' });
 
-    const randomPassword =  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    const randomDomain =    Math.random().toString(36).substring(2, 7);
-    const randomEmail = `${randomPassword}@${randomDomain}.com`
+        const randomPassword =  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const randomDomain =    Math.random().toString(36).substring(2, 7);
+        const randomEmail = `${randomPassword}@${randomDomain}.com`;
 
-    const proxy = await rp({
-        method: 'GET',
-        uri: config.PROXY_URI,
-        json: true,
-        headers: { 'User-Agent': 'Request-Promise' },
-    });
+        const proxy = await rp({
+            method: 'GET',
+            uri: config.PROXY_URI,
+            json: true,
+            headers: { 'User-Agent': 'Request-Promise' },
+        });
 
-    console.log(proxy.ip, proxy.port);
+        console.log(proxy.ip, proxy.port);
 
-    const browser = await puppeteer.launch({
-        headless:false,
-        timeout:0,
-        args: [
-            `--proxy-server=${proxy.ip}:${proxy.port}`, // Or whatever the address is
-        ]
-    });
-    const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 768});
+        let browser = await puppeteer.launch({
+            headless: false,
+            timeout: 0,
+            args: [
+                `--proxy-server=${proxy.ip}:${proxy.port}`, // Or whatever the address is
+            ]
+        });
+        let textDialInNo = '';
+        let textAccessCode = '';
+        let textHostPin = '';
+        try {
+            const page = await browser.newPage();
+            await page.setRequestInterception(true);
 
-    await page.goto(config.CONCALL_HOST_URI, {waitUntil: 'networkidle2'});
-    await page.waitFor(4000);
+            page.on('request', (request) => {
+               if (request.resourceType() === 'image') request.abort();
+               else request.continue();
+            });
 
-    console.log(page.url());
+            await page.setViewport({ width: 1366, height: 768});
 
-    // Type our query into the search bar
-    await page.focus('#main_email');
-    await page.type('#main_email',randomEmail);
+            await page.goto(config.CONCALL_HOST_URI, {waitUntil: 'networkidle2'});
+            await page.waitFor(4000);
 
+            console.log(page.url());
 
-    await page.focus('#password');
-    await page.type('#password', randomPassword);
-
-    // Submit form
-    await page.click('#signupButton');
-
-    // Wait for search results page to load
-    await page.waitForNavigation({waitUntil: 'networkidle2'});
-
-    await page.waitFor(12000);
-    const textDialInNo = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(1) > div.col-xs-6.align-right.text-nowrap > span.credentials-value').textContent);
-    const textAccessCode = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(5) > div.col-xs-7.align-right > span').textContent);
-    const textHostPin = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(7) > div.col-xs-8.align-right > span').textContent);
-
-    console.log(textDialInNo);
-    console.log(textAccessCode);
-    console.log(textHostPin);
-
-    await page.click('#extended-new-account-modal > div > div > div.modal-header > button > span:nth-child(1)');
-    await page.waitFor(1000);
-
-    await page.click('#logout-desktop');
-    await browser.close();
+            // Type our query into the search bar
+            await page.focus('#main_email');
+            await page.type('#main_email',randomEmail);
 
 
+            await page.focus('#password');
+            await page.type('#password', randomPassword);
 
-    const htmlBody = req.body.mailOptions.html
-        .replace('{{dialInNo}}', textDialInNo)
-        .replace('{{accessCode}}', textAccessCode)
-        .replace('{{hostPin}}', textHostPin);
+            // Submit form
+            await page.click('#signupButton');
 
+            // Wait for search results page to load
+            await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-    const stripedHtml = htmlBody.replace(/<[^>]+>/g, '');
-    const textBody = he.decode(stripedHtml);
+            await page.waitFor(12000);
+            textDialInNo = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(1) > div.col-xs-6.align-right.text-nowrap > span.credentials-value').textContent);
+            textAccessCode = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(5) > div.col-xs-7.align-right > span').textContent);
+            textHostPin = await page.evaluate(() => document.querySelector('#acct_info_box > div:nth-child(7) > div.col-xs-8.align-right > span').textContent);
 
+            console.log(textDialInNo);
+            console.log(textAccessCode);
+            console.log(textHostPin);
 
+            await page.click('#extended-new-account-modal > div > div > div.modal-header > button > span:nth-child(1)');
+            await page.waitFor(1000);
 
-     const mailOptions = {
-         from: req.body.mailOptions.from, // sender address
-         to: req.body.mailOptions.to, // list of receivers
-         subject: req.body.mailOptions.subject, // Subject line
-         text: textBody, // plain text body
-         html: htmlBody // html body
-     };
+            await page.click('#logout-desktop');
+            await browser.close();
+        } catch (err) {
+            console.log('pup error :', err);
+            await browser.close();
+            return res.status(500).json(err);
+        }
 
-     const oConCallDetails ={
-         dateTime:req.body.dateTime,
-         dialInNo:textDialInNo,
-         accessCode:textAccessCode,
-         hostPin:textHostPin,
-     };
+        const htmlBody = req.body.mailOptions.html
+            .replace('{{dialInNo}}', textDialInNo)
+            .replace('{{accessCode}}', textAccessCode)
+            .replace('{{hostPin}}', textHostPin)
+            .replace('{{dateTime}}', req.body.dateTime);
 
-     return email.send(mailOptions)
-         .then(info => {
-             if(req.body.callbackUrl)
-                {
-                 const callback = await
-                    rp({
-                        method: 'POST',
-                        uri: req.body.callbackURL,
-                        body: {...oConCallDetails, ...info},
-                        json: true,
-                        headers: { 'User-Agent': 'Request-Promise' },
-                    })
-                }
+        const stripedHtml = htmlBody.replace(/<[^>]+>/g, '');
+        const textBody = he.decode(stripedHtml);
 
-               return res.status(201).json({...oConCallDetails, ...info})
-         })
-         .catch(err => {
-             if(req.body.callbackUrl)
-             {
-                 const callback = await
-                 rp({
-                     method: 'POST',
-                     uri: req.body.callbackURL,
-                     body: {...oConCallDetails, ...info},
-                     json: true,
-                     headers: { 'User-Agent': 'Request-Promise' },
-                 })
-             }
+        const { from, to, bcc, subject } = req.body.mailOptions;
 
-             return res.status(500).json(err)
-         });
+        console.log('To address ', to.length);
+        const mailOptions = {
+            from, // sender address
+            bcc, // list of receivers
+            subject, // Subject line
+            text: textBody, // plain text body
+            html: htmlBody // html body
+        };
+
+        const conCallDetails = {
+            dateTime: req.body.dateTime,
+            dialInNo: textDialInNo,
+            accessCode: textAccessCode,
+            hostPin: textHostPin,
+            userId: req.body.userId,
+        };
+
+        return await Promise.all(to.map(v => transport.send({ ...mailOptions, to: v })))
+            .then(async (info) => {
+                // logger.log('Conc call created: ', data);
+                if (req.body.callbackURL) await conCallComplete(req.body.callbackURL, conCallDetails);
+                console.log('successs');
+                return res.status(201).json({...conCallDetails, ...info})
+            })
+            .catch(async (err) => {
+                // logger.error(err);
+                if (req.body.callbackURL) await conCallComplete(req.body.callbackURL, conCallDetails);
+                console.log('failed ', err);
+                return res.status(500).json(err);
+            });
+    } catch (err) {
+        console.log('catch ', err);
+        return res.status(500).json(err);
+    }
 });
 
 
